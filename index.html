@@ -417,8 +417,43 @@ let STATE = {
   userName: null,
 };
 
-let RECLAMOS = []; // shared in-memory store
-let nextId = 1;
+// ═══════════════════════════════════════════
+//  PERSISTENT STORAGE (localStorage + BroadcastChannel)
+// ═══════════════════════════════════════════
+const STORAGE_KEY = 'beccacece_reclamos';
+const ID_KEY = 'beccacece_next_id';
+
+function loadReclamos(){
+  try{const d=localStorage.getItem(STORAGE_KEY);return d?JSON.parse(d):[];}
+  catch(e){return [];}
+}
+function saveReclamos(arr){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));}catch(e){}
+}
+function loadNextId(){
+  try{return parseInt(localStorage.getItem(ID_KEY)||'1');}catch(e){return 1;}
+}
+function saveNextId(n){
+  try{localStorage.setItem(ID_KEY,String(n));}catch(e){}
+}
+
+let RECLAMOS = loadReclamos();
+let nextId = loadNextId();
+
+// BroadcastChannel: sync entre pestañas en tiempo real
+const bc = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('beccacece_sync') : null;
+if(bc){
+  bc.onmessage = function(e){
+    if(e.data && e.data.type === 'sync'){
+      RECLAMOS = e.data.reclamos;
+      nextId = e.data.nextId;
+      if(STATE.role) renderAll();
+    }
+  };
+}
+function broadcastSync(){
+  if(bc) bc.postMessage({type:'sync', reclamos:RECLAMOS, nextId:nextId});
+}
 
 // Search state
 let searchResults = [];
@@ -475,6 +510,7 @@ function doLogin(){
     STATE.userName = 'Dashboard';
   }
   showScreen('s-'+role);
+  tickerSec = 0;
   renderAll();
 }
 
@@ -571,6 +607,10 @@ function enviarReclamo(){
     tipoRespuesta: null, // 'resuelto'|'rechazado'
   };
   RECLAMOS.unshift(reclamo);
+  nextId = reclamo.id + 1;
+  saveReclamos(RECLAMOS);
+  saveNextId(nextId);
+  broadcastSync();
   // Reset form
   selectedClient=null;
   document.getElementById('ch-client-sel').style.display='none';
@@ -597,7 +637,7 @@ function abrirRespuesta(id){
   if(el) el.style.display = el.style.display==='none'?'block':'none';
   // Mark en curso
   const r = RECLAMOS.find(x=>x.id===id);
-  if(r && r.estado==='urgente'){r.estado='encurso';}
+  if(r && r.estado==='urgente'){r.estado='encurso'; saveReclamos(RECLAMOS); broadcastSync();}
   renderAll();
 }
 
@@ -611,6 +651,8 @@ function enviarRespuesta(id, tipo){
   r.estado = tipo;
   r.tsRespuesta = r.tsRespuesta || Date.now();
   r.tsFin = Date.now();
+  saveReclamos(RECLAMOS);
+  broadcastSync();
   // Notify chofer
   if(STATE.role==='chofer' && STATE.userId===r.choferN){
     showToast(
@@ -896,6 +938,19 @@ function vibrate(){
   if(navigator.vibrate) navigator.vibrate([200,100,200]);
 }
 
+// Reload from storage on tab focus (fallback for browsers without BroadcastChannel)
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden){
+    const fresh = loadReclamos();
+    const freshId = loadNextId();
+    if(JSON.stringify(fresh) !== JSON.stringify(RECLAMOS)){
+      RECLAMOS = fresh;
+      nextId = freshId;
+      if(STATE.role) renderAll();
+    }
+  }
+});
+
 // ═══════════════════════════════════════════
 //  GLOBAL RENDER
 // ═══════════════════════════════════════════
@@ -911,6 +966,15 @@ function renderAll(){
 // ═══════════════════════════════════════════
 setInterval(()=>{
   tickerSec++;
+  // Sync from storage every 2s (fallback for missed broadcasts)
+  if(tickerSec % 2 === 0){
+    const fresh = loadReclamos();
+    const freshId = loadNextId();
+    if(JSON.stringify(fresh) !== JSON.stringify(RECLAMOS)){
+      RECLAMOS = fresh;
+      nextId = freshId;
+    }
+  }
   const t=`Actualizado hace ${tickerSec}s`;
   ['ch-ticker','sup-ticker','mod-ticker','dash-ticker'].forEach(id=>{
     const el=document.getElementById(id);
