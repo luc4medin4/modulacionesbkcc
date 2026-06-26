@@ -3,23 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#1F3864">
 <title>Beccacece — Reclamos de Entrega</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;
-  --border:#334155;--border2:#475569;
-  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
-  --red:#ef4444;--red-bg:#450a0a;--red-border:#991b1b;
-  --yellow:#f59e0b;--yellow-bg:#451a03;--yellow-border:#92400e;
-  --green:#22c55e;--green-bg:#052e16;--green-border:#166534;
-  --blue:#3b82f6;--blue-bg:#1e3a5f;--blue-border:#1d4ed8;
-  --gray:#64748b;--gray-bg:#1e293b;
+  --navy:#1F3864;--navy-dark:#13243f;--navy-light:#2c4a7c;
+  --gold:#C9A84C;--gold-dark:#a4842e;--gold-bg:#fdf6e3;
+  --bg:#f4f6f8;--bg2:#ffffff;--bg3:#eef1f5;
+  --border:#dde3ea;--border2:#c7d0db;
+  --text:#16243a;--text2:#51607a;--text3:#8b97a8;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fca5a5;
+  --yellow:#b45309;--yellow-bg:#fffbeb;--yellow-border:#fcd34d;
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --blue:#1F3864;--blue-bg:#eaf0f9;--blue-border:#9fb3d1;
+  --gray:#64748b;--gray-bg:#eef1f5;
   --radius:8px;--radius-lg:12px;
 }
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
@@ -59,12 +65,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .card-body{padding:14px}
 
 /* ─── KPI ─── */
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
 .kpi{background:var(--bg2);border-radius:var(--radius-lg);border:0.5px solid var(--border);padding:12px 14px;border-left:3px solid}
-.kpi.k-red{border-left-color:var(--red)}.kpi.k-yellow{border-left-color:var(--yellow)}.kpi.k-green{border-left-color:var(--green)}.kpi.k-gray{border-left-color:var(--gray)}
+.kpi.k-red{border-left-color:var(--red)}.kpi.k-yellow{border-left-color:var(--yellow)}.kpi.k-green{border-left-color:var(--green)}.kpi.k-gray{border-left-color:var(--gray)}.kpi.k-blue{border-left-color:var(--gold-dark)}
 .kpi-n{font-size:26px;font-weight:600;line-height:1}
 .kpi-l{font-size:11px;color:var(--text2);margin-top:3px}
-.kpi.k-red .kpi-n{color:var(--red)}.kpi.k-yellow .kpi-n{color:var(--yellow)}.kpi.k-green .kpi-n{color:var(--green)}.kpi.k-gray .kpi-n{color:var(--gray)}
+.kpi.k-red .kpi-n{color:var(--red)}.kpi.k-yellow .kpi-n{color:var(--yellow)}.kpi.k-green .kpi-n{color:var(--green)}.kpi.k-gray .kpi-n{color:var(--gray)}.kpi.k-blue .kpi-n{color:var(--gold-dark)}
 
 /* ─── BADGE ─── */
 .badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:var(--radius);border:0.5px solid;white-space:nowrap}
@@ -73,7 +79,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .b-green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
 .b-blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border)}
 .b-gray{background:var(--bg3);color:var(--text2);border-color:var(--border2)}
-.b-mod{background:#2d1f47;color:#a78bfa;border-color:#5b21b6}
+.b-mod{background:#f1e9fb;color:#6d28d9;border-color:#c4b5fd}
 
 /* ─── CLAIM CARDS ─── */
 .claim-item{padding:10px 14px;border-bottom:0.5px solid var(--border);transition:background .1s}
@@ -154,7 +160,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .empty-state{padding:30px;text-align:center;color:var(--text3);font-size:12px}
 .divider{height:0.5px;background:var(--border);margin:10px 0}
-.sup-indicator{font-size:10px;background:#2d1f47;color:#a78bfa;border:0.5px solid #5b21b6;border-radius:var(--radius);padding:2px 7px;margin-left:auto}
+.sup-indicator{font-size:10px;background:#f1e9fb;color:#6d28d9;border:0.5px solid #c4b5fd;border-radius:var(--radius);padding:2px 7px;margin-left:auto}
 .tab-row{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:12px}
 .tab{padding:8px 14px;font-size:12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
@@ -174,15 +180,16 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 <!-- ══════════════ SCREEN LOGIN ══════════════ -->
 <div class="screen active" id="s-login">
   <div class="login-box">
-    <div class="login-logo">BH</div>
-    <div class="login-sub">Beccacece Hnos — Sistema de Reclamos</div>
+    <img src="logo-beccacece.png" alt="Beccacece Hnos" style="width:84px;height:84px;margin:0 auto 10px;display:block">
+    <div class="login-sub" style="font-weight:600;color:var(--navy);font-size:13px;margin-bottom:.3rem">BECCACECE HNOS</div>
+    <div class="login-sub">Sistema de Reclamos de Entrega</div>
     <label class="login-label">Seleccioná tu rol</label>
     <select class="login-select" id="login-role">
       <option value="">— Elegir rol —</option>
       <option value="chofer">🚚 Chofer / Camión</option>
       <option value="supervisor">👤 Supervisor</option>
-      <option value="modulador">📡 Modulador (Leo Frasso)</option>
-      <option value="dashboard">📊 Dashboard General</option>
+      <option value="modulador">📡 Modulador / Centro de Control</option>
+      <option value="controlador">🛡️ Controladores</option>
     </select>
     <div id="login-chofer-wrap" style="display:none">
       <label class="login-label">Número de camión</label>
@@ -191,6 +198,16 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
     <div id="login-sup-wrap" style="display:none">
       <label class="login-label">Supervisor</label>
       <select class="login-select" id="login-sup"></select>
+      <label class="login-label">Contraseña (DNI)</label>
+      <input type="password" class="login-select" id="login-sup-pass" placeholder="DNI sin puntos">
+    </div>
+    <div id="login-mod-wrap" style="display:none">
+      <label class="login-label">Contraseña</label>
+      <input type="password" class="login-select" id="login-mod-pass" placeholder="Contraseña">
+    </div>
+    <div id="login-cont-wrap" style="display:none">
+      <label class="login-label">Contraseña</label>
+      <input type="password" class="login-select" id="login-cont-pass" placeholder="Contraseña">
     </div>
     <button class="btn-primary" onclick="doLogin()">Ingresar</button>
   </div>
@@ -289,9 +306,10 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 <!-- ══════════════ SCREEN MODULADOR ══════════════ -->
 <div class="screen" id="s-modulador">
   <div class="topbar">
-    <i class="ti ti-headset" style="font-size:18px;color:#a78bfa"></i>
-    <div class="topbar-title">Modulador — Leo Frasso</div>
+    <i class="ti ti-headset" style="font-size:18px;color:#6d28d9"></i>
+    <div class="topbar-title" id="mod-title">Modulador / Centro de Control</div>
     <span class="badge b-mod">Modulador</span>
+    <button class="btn-sm" onclick="finalizarReparto()" style="margin-left:8px"><i class="ti ti-file-export"></i> Finalizar reparto del día</button>
     <div class="ticker"><span class="pulse"></span><span id="mod-ticker">En línea</span></div>
     <button class="logout-btn" onclick="logout()"><i class="ti ti-logout"></i></button>
   </div>
@@ -327,43 +345,27 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   </div>
 </div>
 
-<!-- ══════════════ SCREEN DASHBOARD ══════════════ -->
-<div class="screen" id="s-dashboard">
+<!-- ══════════════ SCREEN CONTROLADORES ══════════════ -->
+<div class="screen" id="s-controlador">
   <div class="topbar">
-    <i class="ti ti-layout-dashboard" style="font-size:18px;color:var(--green)"></i>
-    <div class="topbar-title">Dashboard General</div>
-    <span class="topbar-role">Solo lectura</span>
-    <div class="ticker"><span class="pulse"></span><span id="dash-ticker">En línea</span></div>
+    <i class="ti ti-shield-check" style="font-size:18px;color:var(--navy)"></i>
+    <div class="topbar-title">Controladores — Reclamos por Calidad / Picking</div>
+    <span class="topbar-role">Controladores</span>
+    <div class="ticker"><span class="pulse"></span><span id="cont-ticker">En línea</span></div>
     <button class="logout-btn" onclick="logout()"><i class="ti ti-logout"></i></button>
   </div>
   <div class="content">
-    <div class="kpi-row" id="dash-kpis"></div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><i class="ti ti-message-exclamation"></i> Reclamos activos</div>
-        <div class="filter-row" style="padding:10px 14px 0">
-          <button class="filt-btn active" onclick="dashFilter('todos',this)">Todos</button>
-          <button class="filt-btn" onclick="dashFilter('urgente',this)">Urgentes</button>
-          <button class="filt-btn" onclick="dashFilter('encurso',this)">En curso</button>
-          <button class="filt-btn" onclick="dashFilter('resuelto',this)">Resueltos</button>
-          <button class="filt-btn" onclick="dashFilter('rechazado',this)">Rechazados</button>
-        </div>
-        <div id="dash-list"><div class="empty-state">Sin reclamos</div></div>
+    <div class="kpi-row" id="cont-kpis"></div>
+    <div class="card">
+      <div class="card-header"><i class="ti ti-alert-octagon"></i> Reclamos: Corto vencimiento / Error de picking / Por cambios / Calidad de producto</div>
+      <div class="filter-row" style="padding:10px 14px 0">
+        <button class="filt-btn active" onclick="contFilter('todos',this)">Todos</button>
+        <button class="filt-btn" onclick="contFilter('005',this)">005 Corto venc.</button>
+        <button class="filt-btn" onclick="contFilter('010',this)">010 Error picking</button>
+        <button class="filt-btn" onclick="contFilter('012',this)">012 Por cambios</button>
+        <button class="filt-btn" onclick="contFilter('123',this)">123 Calidad</button>
       </div>
-      <div>
-        <div class="card" style="margin-bottom:12px">
-          <div class="card-header"><i class="ti ti-podium"></i> Top choferes con reclamos</div>
-          <div class="card-body" id="dash-rank-ch"></div>
-        </div>
-        <div class="card" style="margin-bottom:12px">
-          <div class="card-header"><i class="ti ti-clock"></i> Tiempo resp. supervisores</div>
-          <div class="card-body" id="dash-rank-sup"></div>
-        </div>
-        <div class="card">
-          <div class="card-header"><i class="ti ti-tags"></i> Motivos del día</div>
-          <div class="card-body"><div class="chips" id="dash-motivos"></div></div>
-        </div>
-      </div>
+      <div id="cont-list"><div class="empty-state">Sin reclamos</div></div>
     </div>
   </div>
 </div>
@@ -392,10 +394,10 @@ const CHOFERES = [
 ];
 
 const SUPERVISORES = [
-  {n:103,nom:'Coso Rodrigo'},
-  {n:102,nom:'Giarrizzo Mario'},
-  {n:104,nom:'Navarro Martin'},
-  {n:108,nom:'Burgos Andrea'}
+  {n:103,nom:'Coso Rodrigo',pass:'28382899'},
+  {n:102,nom:'Giarrizzo Mario',pass:'16623452'},
+  {n:104,nom:'Navarro Martin',pass:'30251215'},
+  {n:108,nom:'Burgos Andrea',pass:'23139061'}
 ];
 const SUP_BY_N = new Map(SUPERVISORES.map(s=>[s.n,s]));
 const CHOFER_BY_N = new Map(CHOFERES.map(c=>[c.n,c]));
@@ -415,7 +417,7 @@ function motivoColor(m){return MOTIVO_COLORS[motivoCod(m)] || '#64748b'}
 //  STATE
 // ═══════════════════════════════════════════
 let STATE = {
-  role: null, // 'chofer'|'supervisor'|'modulador'|'dashboard'
+  role: null, // 'chofer'|'supervisor'|'modulador'|'controlador'
   userId: null, // camion num or sup num
   userName: null,
 };
@@ -436,6 +438,45 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const REF_RECLAMOS = db.ref('reclamos');
 const REF_NEXTID   = db.ref('nextId');
+const REF_TOKENS   = db.ref('tokens');
+
+// ═══════════════════════════════════════════
+//  PUSH NOTIFICATIONS (Firebase Cloud Messaging)
+// ═══════════════════════════════════════════
+// IMPORTANTE: reemplazar VAPID_KEY por la clave pública generada en
+// Firebase Console > Configuración del proyecto > Cloud Messaging > Generar par de claves.
+const VAPID_KEY = 'BBv8l6J5G22ZAVQTabVJYmaD6NrlJ2vTy1pSGvq6-dIGbYE7OvBq3dMt1n_Xb76XCXKvtvpY_fHsXSHDXTBpP5Y';
+let messaging = null;
+try{
+  if(firebase.messaging.isSupported()){
+    messaging = firebase.messaging();
+  }
+}catch(e){ console.warn('FCM no soportado en este navegador', e); }
+
+async function registerPushForCurrentUser(){
+  if(!messaging) return;
+  try{
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if(token){
+      const tokenKey = `${STATE.role}_${STATE.userId}`;
+      REF_TOKENS.child(tokenKey).set({
+        token, role: STATE.role, userId: STATE.userId, userName: STATE.userName, updatedAt: Date.now()
+      });
+    }
+  }catch(e){ console.warn('No se pudo registrar push:', e); }
+}
+
+// Notificación en foreground (pestaña abierta)
+if(typeof messaging !== 'undefined' && messaging){
+  messaging.onMessage((payload)=>{
+    const n = payload.notification || {};
+    showToast(n.title || 'Notificación', n.body || '', 'urgent');
+    vibrate();
+  });
+}
 
 // localStorage como cache local (para carga offline inmediata)
 function cacheLoad(key, def){ try{const d=localStorage.getItem(key);return d?JSON.parse(d):def;}catch(e){return def;} }
@@ -487,7 +528,7 @@ function broadcastSync(){
 // Search state
 let searchResults = [];
 let selectedClient = null;
-let activeFilters = {chofer:'todos', sup:'todos', mod:'todos', dash:'todos'};
+let activeFilters = {chofer:'todos', sup:'todos', mod:'todos', cont:'todos'};
 let tickerSec = 0;
 
 // ═══════════════════════════════════════════
@@ -497,6 +538,8 @@ document.getElementById('login-role').addEventListener('change', function(){
   const r = this.value;
   document.getElementById('login-chofer-wrap').style.display = r==='chofer'?'block':'none';
   document.getElementById('login-sup-wrap').style.display = r==='supervisor'?'block':'none';
+  document.getElementById('login-mod-wrap').style.display = r==='modulador'?'block':'none';
+  document.getElementById('login-cont-wrap').style.display = r==='controlador'?'block':'none';
 });
 
 // Populate selects
@@ -513,13 +556,17 @@ SUPERVISORES.forEach(s=>{
   supSel.appendChild(o);
 });
 
+const MOD_PASS = '4415';
+const CONT_PASS = '4415';
+const MOTIVOS_CONTROLADOR = ['005','010','012','123'];
+
 function doLogin(){
   const role = document.getElementById('login-role').value;
   if(!role){showToast('Seleccioná un rol','',false);return;}
-  STATE.role = role;
   if(role==='chofer'){
     const n = parseInt(document.getElementById('login-camion').value);
     if(!n){showToast('Seleccioná tu camión','',false);return;}
+    STATE.role = role;
     STATE.userId = n;
     const ch = CHOFER_BY_N.get(n);
     STATE.userName = `C${n} ${ch?ch.nom:''}`;
@@ -527,20 +574,30 @@ function doLogin(){
   } else if(role==='supervisor'){
     const n = parseInt(document.getElementById('login-sup').value);
     if(!n){showToast('Seleccioná tu supervisión','',false);return;}
-    STATE.userId = n;
     const s = SUP_BY_N.get(n);
-    STATE.userName = `S${n} ${s?s.nom:''}`;
-    document.getElementById('sup-title').textContent = `Supervisor — ${s?s.nom:''}`;
+    const pass = document.getElementById('login-sup-pass').value.trim();
+    if(!s || pass !== s.pass){showToast('Contraseña incorrecta','Verificá tu DNI','urgent');return;}
+    STATE.role = role;
+    STATE.userId = n;
+    STATE.userName = `S${n} ${s.nom}`;
+    document.getElementById('sup-title').textContent = `Supervisor — ${s.nom}`;
   } else if(role==='modulador'){
+    const pass = document.getElementById('login-mod-pass').value.trim();
+    if(pass !== MOD_PASS){showToast('Contraseña incorrecta','',false);return;}
+    STATE.role = role;
     STATE.userId = 0;
-    STATE.userName = 'Leo Frasso';
-  } else {
+    STATE.userName = 'Modulador';
+  } else if(role==='controlador'){
+    const pass = document.getElementById('login-cont-pass').value.trim();
+    if(pass !== CONT_PASS){showToast('Contraseña incorrecta','',false);return;}
+    STATE.role = role;
     STATE.userId = 0;
-    STATE.userName = 'Dashboard';
+    STATE.userName = 'Controladores';
   }
-  showScreen('s-'+role);
+  showScreen('s-'+STATE.role);
   tickerSec = 0;
   renderAll();
+  registerPushForCurrentUser();
 }
 
 function logout(){
@@ -551,6 +608,9 @@ function logout(){
   document.getElementById('ch-client-sel').style.display='none';
   document.getElementById('ch-motivo').value='';
   document.getElementById('ch-nota').value='';
+  document.getElementById('login-sup-pass').value='';
+  document.getElementById('login-mod-pass').value='';
+  document.getElementById('login-cont-pass').value='';
   showScreen('s-login');
 }
 
@@ -649,6 +709,15 @@ function enviarReclamo(){
     setTimeout(()=>{
       if(STATE.role==='supervisor' && STATE.userId===sup_n){
         showToast('⚠️ Nuevo reclamo urgente',`Camión ${reclamo.choferN}: ${reclamo.motivo} — ${reclamo.clienteNom}`,'urgent');
+        vibrate();
+      }
+    },500);
+  }
+  // Notify controladores (in-app) si el motivo corresponde a calidad/picking
+  if(MOTIVOS_CONTROLADOR.includes(motivoCod(motivo))){
+    setTimeout(()=>{
+      if(STATE.role==='controlador'){
+        showToast('🛡️ Reclamo de Calidad/Picking',`${motivo} — Camión ${reclamo.choferN} — ${reclamo.clienteNom}`,'urgent');
         vibrate();
       }
     },500);
@@ -761,7 +830,7 @@ function renderChofer(){
       </div>
       ${r.nota?`<div style="font-size:11px;color:var(--text3);margin-top:4px;font-style:italic">"${r.nota}"</div>`:''}
       ${respHTML}
-      ${r.tsFin?`<div class="tiempo-total"><i class="ti ti-hourglass"></i> Tiempo total: ${fmtMs(r.tsFin-r.tsInicio)}</div>`:''}
+      ${r.tsRespuesta?`<div class="tiempo-total"><i class="ti ti-stopwatch"></i> Tiempo de modulación: ${fmtMs(r.tsRespuesta-r.tsInicio)}</div>`:''}
       <div class="progbar"><div class="progfill" style="width:${progW(r.tsInicio)}%;background:${progC(r.tsInicio)}"></div></div>
     </div>`;
   }).join('');
@@ -778,6 +847,12 @@ function supFilter(f, btn){
 }
 
 function renderSupervisor(){
+  // Preservar el input de respuesta si el usuario está escribiendo (el tick de 1s no debe pisarlo)
+  const activeEl = document.activeElement;
+  let preserve = null;
+  if(activeEl && activeEl.id && activeEl.id.startsWith('resp-txt-')){
+    preserve = {id:activeEl.id, value:activeEl.value, selStart:activeEl.selectionStart, selEnd:activeEl.selectionEnd};
+  }
   const mis = RECLAMOS.filter(r=>r.supN===STATE.userId);
   const pending = mis.filter(r=>r.estado==='urgente'||r.estado==='encurso').length;
   const alertEl = document.getElementById('sup-alert-count');
@@ -798,7 +873,6 @@ function renderSupervisor(){
   el.innerHTML = lista.map(r=>{
     const mins=Math.floor((Date.now()-r.tsInicio)/60000);
     const tResp=r.tsRespuesta?fmtMs(r.tsRespuesta-r.tsInicio):null;
-    const tTotal=r.tsFin?fmtMs(r.tsFin-r.tsInicio):null;
     const needsResp=(r.estado==='urgente'||r.estado==='encurso');
     return `<div class="sup-claim ${r.estado==='urgente'?'urgent':r.estado==='encurso'?'encurso':''}">
       <h4>
@@ -813,8 +887,7 @@ function renderSupervisor(){
         ${r.clienteTel?`<span><i class="ti ti-phone"></i> ${r.clienteTel}</span>`:''}
         ${r.clienteHs?`<span><i class="ti ti-clock"></i> Hs. atención: ${r.clienteHs}</span>`:''}
         ${r.nota?`<span><i class="ti ti-note"></i> "${r.nota}"</span>`:''}
-        ${tResp?`<span><i class="ti ti-stopwatch"></i> T. respuesta: <strong style="color:var(--yellow)">${tResp}</strong></span>`:''}
-        ${tTotal?`<span><i class="ti ti-hourglass"></i> T. total: <strong style="color:var(--green)">${tTotal}</strong></span>`:''}
+        ${tResp?`<span><i class="ti ti-stopwatch"></i> T. modulación: <strong style="color:var(--yellow)">${tResp}</strong></span>`:''}
       </div>
       ${needsResp?`
         <div>
@@ -829,6 +902,15 @@ function renderSupervisor(){
        </div>`}
     </div>`;
   }).join('');
+
+  if(preserve){
+    const el2 = document.getElementById(preserve.id);
+    if(el2){
+      el2.value = preserve.value;
+      el2.focus();
+      try{ el2.setSelectionRange(preserve.selStart, preserve.selEnd); }catch(e){}
+    }
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -842,6 +924,7 @@ function modFilter(f,btn){
 }
 
 function renderModulador(){
+  document.getElementById('mod-title').textContent = `Modulador / Centro de Control — ${STATE.userName}`;
   renderKPIs('mod-kpis');
   // Reclamos
   let lista=RECLAMOS;
@@ -855,21 +938,32 @@ function renderModulador(){
 // ═══════════════════════════════════════════
 //  RENDER DASHBOARD
 // ═══════════════════════════════════════════
-function dashFilter(f,btn){
-  activeFilters.dash=f;
-  document.querySelectorAll('#s-dashboard .filt-btn').forEach(b=>b.classList.remove('active'));
+function contFilter(f,btn){
+  activeFilters.cont=f;
+  document.querySelectorAll('#s-controlador .filt-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  renderDashboard();
+  renderControlador();
 }
 
-function renderDashboard(){
-  renderKPIs('dash-kpis');
-  let lista=RECLAMOS;
-  if(activeFilters.dash!=='todos') lista=RECLAMOS.filter(r=>r.estado===activeFilters.dash);
+function renderControlador(){
+  let lista = RECLAMOS.filter(r=>MOTIVOS_CONTROLADOR.includes(motivoCod(r.motivo)));
+  // KPIs propios de controladores
+  const u=lista.filter(r=>r.estado==='urgente').length;
+  const e=lista.filter(r=>r.estado==='encurso').length;
+  const res=lista.filter(r=>r.estado==='resuelto').length;
+  const rej=lista.filter(r=>r.estado==='rechazado').length;
+  document.getElementById('cont-kpis').innerHTML=`
+    <div class="kpi k-red"><div class="kpi-n">${u}</div><div class="kpi-l"><i class="ti ti-alert-triangle"></i> Urgentes</div></div>
+    <div class="kpi k-yellow"><div class="kpi-n">${e}</div><div class="kpi-l"><i class="ti ti-user-check"></i> En curso</div></div>
+    <div class="kpi k-green"><div class="kpi-n">${res}</div><div class="kpi-l"><i class="ti ti-circle-check"></i> Resueltos</div></div>
+    <div class="kpi k-gray"><div class="kpi-n">${rej}</div><div class="kpi-l"><i class="ti ti-ban"></i> Rechazados</div></div>
+    <div class="kpi k-blue"><div class="kpi-n">${lista.length}</div><div class="kpi-l"><i class="ti ti-list-check"></i> Total filtrado</div></div>`;
+  if(activeFilters.cont && activeFilters.cont!=='todos'){
+    lista = lista.filter(r=>motivoCod(r.motivo)===activeFilters.cont);
+  }
   const prio={urgente:0,encurso:1,resuelto:2,rechazado:3};
   lista=[...lista].sort((a,b)=>prio[a.estado]-prio[b.estado]||(b.tsInicio-a.tsInicio));
-  renderClaimList('dash-list', lista, false);
-  renderRankings('dash-rank-ch','dash-rank-sup','dash-motivos');
+  renderClaimList('cont-list', lista, false);
 }
 
 // ═══════════════════════════════════════════
@@ -880,11 +974,14 @@ function renderKPIs(elId){
   const e=RECLAMOS.filter(r=>r.estado==='encurso').length;
   const res=RECLAMOS.filter(r=>r.estado==='resuelto').length;
   const rej=RECLAMOS.filter(r=>r.estado==='rechazado').length;
+  const totalMod = res+rej;
+  const efic = totalMod>0 ? Math.round((res/totalMod)*100) : null;
   document.getElementById(elId).innerHTML=`
     <div class="kpi k-red"><div class="kpi-n">${u}</div><div class="kpi-l"><i class="ti ti-alert-triangle"></i> Urgentes sin respuesta</div></div>
     <div class="kpi k-yellow"><div class="kpi-n">${e}</div><div class="kpi-l"><i class="ti ti-user-check"></i> En curso / asignados</div></div>
     <div class="kpi k-green"><div class="kpi-n">${res}</div><div class="kpi-l"><i class="ti ti-circle-check"></i> Resueltos hoy</div></div>
-    <div class="kpi k-gray"><div class="kpi-n">${rej}</div><div class="kpi-l"><i class="ti ti-ban"></i> Rechazados</div></div>`;
+    <div class="kpi k-gray"><div class="kpi-n">${rej}</div><div class="kpi-l"><i class="ti ti-ban"></i> Rechazados</div></div>
+    <div class="kpi k-blue"><div class="kpi-n">${efic!=null?efic+'%':'—'}</div><div class="kpi-l"><i class="ti ti-target-arrow"></i> Eficiencia de modulación</div></div>`;
 }
 
 function renderClaimList(elId, lista, compact){
@@ -895,8 +992,7 @@ function renderClaimList(elId, lista, compact){
     const supHTML=r.supN
       ?`<span class="sup-tag"><i class="ti ti-user-star"></i> ${r.supNom}</span>`
       :`<span class="no-sup"><i class="ti ti-alert-circle"></i> Sin supervisor</span>`;
-    const tResp=r.tsRespuesta?`<span><i class="ti ti-stopwatch"></i> Resp: ${fmtMs(r.tsRespuesta-r.tsInicio)}</span>`:'';
-    const tTotal=r.tsFin?`<span><i class="ti ti-hourglass"></i> Total: ${fmtMs(r.tsFin-r.tsInicio)}</span>`:'';
+    const tResp=r.tsRespuesta?`<span><i class="ti ti-stopwatch"></i> Modulación: ${fmtMs(r.tsRespuesta-r.tsInicio)}</span>`:'';
     return `<div class="claim-item">
       <div class="ci-top">
         ${estadoBadge(r.estado)}
@@ -907,7 +1003,7 @@ function renderClaimList(elId, lista, compact){
         <span><i class="ti ti-truck"></i> ${r.choferNom}</span>
         <span><i class="ti ti-building-store"></i> #${r.clienteId} ${r.clienteNom}</span>
         <span><i class="ti ti-map-pin"></i> ${r.clienteDir}</span>
-        ${supHTML}${tResp}${tTotal}
+        ${supHTML}${tResp}
       </div>
       ${r.respuesta?`<div class="${r.tipoRespuesta==='resuelto'?'resp-box':'reject-box'}" style="margin-top:6px"><i class="ti ti-${r.tipoRespuesta==='resuelto'?'circle-check':'x'}"></i> ${r.respuesta}</div>`:''}
       <div class="progbar"><div class="progfill" style="width:${progW(r.tsInicio)}%;background:${progC(r.tsInicio)}"></div></div>
@@ -950,8 +1046,133 @@ function renderRankings(chEl, supEl, motEl){
 }
 
 // ═══════════════════════════════════════════
-//  NOTIFICATIONS
+//  EXPORT PDF / EXCEL — Finalizar reparto del día
 // ═══════════════════════════════════════════
+function imgToDataURL(src){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0);
+      try{ resolve(canvas.toDataURL('image/png')); }catch(e){ resolve(null); }
+    };
+    img.onerror = function(){ resolve(null); };
+    img.src = src;
+  });
+}
+
+function fechaHoyStr(){
+  const d = new Date();
+  return d.toLocaleDateString('es-AR') + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+}
+
+async function finalizarReparto(){
+  showToast('Generando reportes...','PDF y Excel del día','ok');
+  await generarPDFDia();
+  generarExcelDia();
+}
+
+async function generarPDFDia(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const navy = [31,56,100];
+  const gold = [201,168,76];
+  let y = 15;
+
+  const logoData = await imgToDataURL('logo-beccacece.png');
+  if(logoData){ try{ doc.addImage(logoData, 'PNG', 14, 10, 18, 18); }catch(e){} }
+
+  doc.setFontSize(16); doc.setTextColor(navy[0],navy[1],navy[2]);
+  doc.text('Beccacece Hnos — Reporte diario de Reclamos', logoData?36:14, 18);
+  doc.setFontSize(10); doc.setTextColor(100,100,100);
+  doc.text(fechaHoyStr(), logoData?36:14, 25);
+  y = 34;
+
+  // KPIs generales
+  const u=RECLAMOS.filter(r=>r.estado==='urgente').length;
+  const e=RECLAMOS.filter(r=>r.estado==='encurso').length;
+  const res=RECLAMOS.filter(r=>r.estado==='resuelto').length;
+  const rej=RECLAMOS.filter(r=>r.estado==='rechazado').length;
+  const totalMod = res+rej;
+  const efic = totalMod>0 ? Math.round((res/totalMod)*100) : 0;
+
+  doc.setFontSize(11); doc.setTextColor(0,0,0);
+  doc.text(`Total reclamos: ${RECLAMOS.length}   |   Urgentes: ${u}   |   En curso: ${e}   |   Resueltos: ${res}   |   Rechazados: ${rej}   |   Eficiencia de modulación: ${efic}%`, 14, y);
+  y += 8;
+
+  // Tabla principal de reclamos
+  const rows = RECLAMOS.map(r=>[
+    r.id, r.estado, r.motivo, r.choferNom||'', `#${r.clienteId} ${r.clienteNom}`,
+    r.supNom||'Sin sup.', r.tsRespuesta? fmtMs(r.tsRespuesta-r.tsInicio):'—',
+    r.respuesta||''
+  ]);
+  doc.autoTable({
+    startY: y,
+    head: [['ID','Estado','Motivo','Chofer','Cliente','Supervisor','T. modulación','Respuesta']],
+    body: rows,
+    styles:{fontSize:7},
+    headStyles:{fillColor:navy, textColor:255},
+    theme:'striped',
+    margin:{left:10,right:10}
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // Ranking choferes
+  const chCounts={}; RECLAMOS.forEach(r=>{chCounts[r.choferNom]=(chCounts[r.choferNom]||0)+1});
+  const chSorted=Object.entries(chCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(y>250){ doc.addPage(); y=15; }
+  doc.setFontSize(12); doc.setTextColor(navy[0],navy[1],navy[2]); doc.text('Choferes con más reclamos', 14, y); y+=4;
+  doc.autoTable({ startY:y, head:[['Chofer','Reclamos']], body:chSorted, styles:{fontSize:8}, headStyles:{fillColor:gold,textColor:0}, margin:{left:10,right:10} });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // Ranking supervisores (tiempo de modulación promedio)
+  const supTimes={};const supCounts={};
+  RECLAMOS.filter(r=>r.tsRespuesta&&r.supN).forEach(r=>{
+    supTimes[r.supN]=(supTimes[r.supN]||0)+(r.tsRespuesta-r.tsInicio);
+    supCounts[r.supN]=(supCounts[r.supN]||0)+1;
+  });
+  const supAvgs=SUPERVISORES.map(s=>{
+    const avg=supCounts[s.n]?Math.round(supTimes[s.n]/supCounts[s.n]/60000):null;
+    return [`S${s.n} ${s.nom}`, avg!=null?avg+'m':'—'];
+  });
+  if(y>250){ doc.addPage(); y=15; }
+  doc.setFontSize(12); doc.setTextColor(navy[0],navy[1],navy[2]); doc.text('Tiempo promedio de modulación por supervisor', 14, y); y+=4;
+  doc.autoTable({ startY:y, head:[['Supervisor','T. promedio']], body:supAvgs, styles:{fontSize:8}, headStyles:{fillColor:gold,textColor:0}, margin:{left:10,right:10} });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // Motivos del día
+  const mCounts={}; RECLAMOS.forEach(r=>{mCounts[r.motivo]=(mCounts[r.motivo]||0)+1;});
+  const mSorted=Object.entries(mCounts).sort((a,b)=>b[1]-a[1]);
+  if(y>250){ doc.addPage(); y=15; }
+  doc.setFontSize(12); doc.setTextColor(navy[0],navy[1],navy[2]); doc.text('Motivos del día', 14, y); y+=4;
+  doc.autoTable({ startY:y, head:[['Motivo','Cantidad']], body:mSorted, styles:{fontSize:8}, headStyles:{fillColor:gold,textColor:0}, margin:{left:10,right:10} });
+
+  doc.save(`Reporte_Reclamos_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+function generarExcelDia(){
+  const data = RECLAMOS.map(r=>({
+    ID:r.id, Estado:r.estado, Motivo:r.motivo, Nota:r.nota||'',
+    ChoferNum:r.choferN, ChoferNombre:r.choferNom,
+    ClienteId:r.clienteId, ClienteNombre:r.clienteNom, ClienteDireccion:r.clienteDir,
+    ClienteTelefono:r.clienteTel, ClienteHorario:r.clienteHs, ClienteNegocio:r.clienteNeg,
+    SupervisorNum:r.supN, SupervisorNombre:r.supNom,
+    FechaInicio: r.tsInicio? new Date(r.tsInicio).toLocaleString('es-AR'):'',
+    FechaRespuesta: r.tsRespuesta? new Date(r.tsRespuesta).toLocaleString('es-AR'):'',
+    FechaFin: r.tsFin? new Date(r.tsFin).toLocaleString('es-AR'):'',
+    TiempoModulacionMin: r.tsRespuesta? Math.round((r.tsRespuesta-r.tsInicio)/60000):'',
+    TipoRespuesta:r.tipoRespuesta||'', Respuesta:r.respuesta||''
+  }));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, 'Reclamos');
+  XLSX.writeFile(wb, `Reclamos_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+
 function showToast(title, body, type){
   const t=document.getElementById('toast');
   document.getElementById('toast-title').innerHTML=title;
@@ -973,7 +1194,7 @@ function renderAll(){
   if(STATE.role==='chofer') renderChofer();
   else if(STATE.role==='supervisor') renderSupervisor();
   else if(STATE.role==='modulador') renderModulador();
-  else if(STATE.role==='dashboard') renderDashboard();
+  else if(STATE.role==='controlador') renderControlador();
 }
 
 // ═══════════════════════════════════════════
@@ -982,7 +1203,7 @@ function renderAll(){
 setInterval(()=>{
   tickerSec++;
   const t=`Actualizado hace ${tickerSec}s`;
-  ['ch-ticker','sup-ticker','mod-ticker','dash-ticker'].forEach(id=>{
+  ['ch-ticker','sup-ticker','mod-ticker','cont-ticker'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.textContent=t;
   });
