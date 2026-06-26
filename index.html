@@ -469,6 +469,17 @@ async function registerPushForCurrentUser(){
   }catch(e){ console.warn('No se pudo registrar push:', e); }
 }
 
+// URL de la Cloud Run function que envía las notificaciones push reales (backend)
+const CLOUD_FUNCTION_URL = 'https://notificar-reclamo-983747807417.us-central1.run.app';
+
+function notificarPush(tipo, reclamo){
+  fetch(CLOUD_FUNCTION_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tipo, reclamo })
+  }).catch(e => console.warn('No se pudo notificar push (backend):', e));
+}
+
 // Notificación en foreground (pestaña abierta)
 if(typeof messaging !== 'undefined' && messaging){
   messaging.onMessage((payload)=>{
@@ -698,6 +709,7 @@ function enviarReclamo(){
   RECLAMOS.unshift(reclamo);
   nextId = reclamo.id + 1;
   broadcastSync();
+  notificarPush('nuevo', reclamo);
   // Reset form
   selectedClient=null;
   document.getElementById('ch-client-sel').style.display='none';
@@ -748,6 +760,7 @@ function enviarRespuesta(id, tipo){
   r.tsRespuesta = r.tsRespuesta || Date.now();
   r.tsFin = Date.now();
   broadcastSync();
+  notificarPush('respuesta', r);
   // Notify chofer
   if(STATE.role==='chofer' && STATE.userId===r.choferN){
     showToast(
